@@ -1,0 +1,38 @@
+diff -r a7c990e1a20a -r 718f5a69a12b components/ruby/puppet/patches/puppet-09-role-shell.patch
+--- /dev/null   Thu Jan 01 00:00:00 1970 +0000
++++ b/components/ruby/puppet/patches/puppet-09-role-shell.patch Tue Sep 08 01:59:36 2015 -0700
+@@ -0,0 +1,34 @@
++--- puppet-3.6.2/lib/puppet/provider/user/user_role_add.rb.orig  Thu Jul 30 22:51:24 2015
+++++ puppet-3.6.2/lib/puppet/provider/user/user_role_add.rb     Mon Aug  3 23:22:44 2015
++@@ -12,6 +12,7 @@
++   options :home, :flag => "-d", :method => :dir
++   options :comment, :method => :gecos
++   options :groups, :flag => "-G"
+++  options :shell, :flag => "-s"
++   options :roles, :flag => "-R"
++   options :auths, :flag => "-A"
++   options :profiles, :flag => "-P"
++@@ -26,8 +27,23 @@
++     value !~ /\s/
++   end
++
+++  def shell=(value)
+++    check_valid_shell
+++    set("shell", value)
+++  end
+++
++   has_features :manages_homedir, :allows_duplicates, :manages_solaris_rbac, :manages_passwords, :manages_password_age
+++  has_features :manages_shell
++
+++  def check_valid_shell
+++    unless File.exists?(@resource.should(:shell))
+++      raise(Puppet::Error, "Shell #{@resource.should(:shell)} must exist")
+++    end
+++    unless File.executable?(@resource.should(:shell).to_s)
+++      raise(Puppet::Error, "Shell #{@resource.should(:shell)} must be executable")
+++    end
+++  end
+++
++   #must override this to hand the keyvalue pairs
++   def add_properties
++     cmd = []
